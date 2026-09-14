@@ -1373,7 +1373,7 @@ class App extends React.Component {
     this.onResultsFilterInput = this.onResultsFilterInput.bind(this);
     this.onSetQueryName = this.onSetQueryName.bind(this);
     this.onStopExport = this.onStopExport.bind(this);
-    this.state = {hideButtonsOption: JSON.parse(localStorage.getItem("hideExportButtonsOption")), isDropdownOpen: false};// Tracks whether the dropdown is open
+    this.state = {hideButtonsOption: JSON.parse(localStorage.getItem("hideExportButtonsOption")), isDropdownOpen: false, isCopyColumnOpen: false, copyColumnFeedback: null};// Tracks whether the dropdown is open
     this.filterColumns = []; // Initialize as an empty array
     this.onAddTab = this.onAddTab.bind(this);
     this.onRemoveTab = this.onRemoveTab.bind(this);
@@ -1553,7 +1553,7 @@ class App extends React.Component {
     let {model} = this.props;
     model.setResultsFilter(e.target.value);
     if (e.target.value.length == 0){
-      this.setState({isDropdownOpen: false});
+      this.setState({isDropdownOpen: false, isCopyColumnOpen: false});
     }
     model.didUpdate();
   }
@@ -2112,6 +2112,36 @@ class App extends React.Component {
                         }),
                         column
                         )
+                      )
+                  )
+                )
+              ) : null,
+              model.exportedData && model.exportedData.table[0]?.length > 0 && !model.exportError ? h("div", {className: "slds-form-element slds-m-left_small"},
+                h("div", {className: "slds-form-element__control slds-button-group", style: {position: "relative"}},
+                  h("button", {
+                    className: "slds-button slds-button_neutral",
+                    title: "Copy a column as a quoted comma-separated list for use in a SOQL IN clause",
+                    onClick: () => this.setState({isCopyColumnOpen: !this.state.isCopyColumnOpen, copyColumnFeedback: null})
+                  }, this.state.copyColumnFeedback || "Copy Column"),
+                  this.state.isCopyColumnOpen && h("div", {className: "dropdown-menu"},
+                    model.exportedData.table[0]
+                      .filter(col => col !== "_")
+                      .map(col =>
+                        h("div", {
+                          key: col,
+                          className: "dropdown-item",
+                          onClick: () => {
+                            const colIdx = model.exportedData.table[0].indexOf(col);
+                            const values = model.exportedData.table
+                              .slice(1)
+                              .filter(row => row[colIdx] != null && row[colIdx] !== "")
+                              .map(row => row[colIdx]);
+                            const unique = [...new Set(values)];
+                            copyToClipboard("('" + unique.join("','") + "')");
+                            this.setState({isCopyColumnOpen: false, copyColumnFeedback: "Copied!"});
+                            setTimeout(() => this.setState({copyColumnFeedback: null}), 2000);
+                          }
+                        }, col)
                       )
                   )
                 )
