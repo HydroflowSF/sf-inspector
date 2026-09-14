@@ -82,6 +82,8 @@ npm run set-test-constants -- --target-org my-org-alias
 
 Prerequisites: Salesforce CLI (`sf`) installed, authenticated to an org, Flow `RecordTrigger_InspectorTest` deployed, and at least one Account record.
 
+> **Note:** Since the Salesforce CLI security update (~May 2026), `sf org display` redacts the access token (it returns `[REDACTED] Use 'sf org auth show-access-token' to view`). The script now fetches the token via `sf org auth show-access-token --json`, so make sure your CLI version supports that command. If you set `mockToken` manually (Option B) and see `401` errors, get a valid token with `sf org auth show-access-token --target-org <org>`.
+
 **Important:** Import `tests/account_test_data.csv` before running the script so Account names (e.g. "Test Account 1", "Test Account 2") match test expectations. The script sets both `accountRecordId` and `accountRecordName` from your org.
 
 **Option B: Manual configuration**
@@ -98,7 +100,7 @@ Then edit `tests/e2e/test-constants.local.js`:
 export const TEST_CONSTANTS = {
   mockHost: "your-org-instance.sandbox.my.salesforce.com",  // Your Salesforce instance URL
   mockToken: "YOUR_ACCESS_TOKEN_HERE",                      // Valid Salesforce access token
-  apiVersion: "66.0",                                       // API version (must match your org)
+  apiVersion: "67.0",                                       // API version (must match your org)
   accountRecordId: "001000000000001AAA",                    // Valid Account record ID
   accountRecordName: "Test Account 1",                      // Account Name (must match record)
   testUserSearchTerm: "Integration User",                   // User search term (exists in all orgs)
@@ -283,7 +285,7 @@ The real-org workflow will:
 ## Test Files Overview
 
 | Test File | Description | Key Dependencies |
-|-----------|-------------|------------------|
+| ----------- | ------------- | ------------------ |
 | `inspect.spec.js` | Tests the Inspect page functionality | Account object, Account record |
 | `options.spec.js` | Tests the Options page | User object, API access |
 | `data-export.spec.js` | Tests data export features | Account object, SOQL queries |
